@@ -1,4 +1,4 @@
-export default function Guri() {
+export default function Ori() {
   return (
     <div>
       <h1>ori!!</h1>
