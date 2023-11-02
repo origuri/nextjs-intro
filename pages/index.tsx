@@ -1,5 +1,7 @@
 import Seo from "@/components/Seo";
-import { useEffect, useState } from "react";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import Link from "next/link";
+import { useRouter } from "next/router";
 import * as React from "react";
 
 interface IMovie {
@@ -19,32 +21,48 @@ interface IMovie {
   vote_count: number;
 }
 
-const API_KEY = "5e8adfbcbe0ad3d1d09d10601517553f";
+const Home = ({ results }: InferGetServerSidePropsType<GetServerSideProps>) => {
+  console.log("home 입니다.");
 
-function Home() {
-  const [movies, setMovies] = useState<IMovie[]>([]);
+  const router = useRouter();
 
-  console.log("여기는 home");
+  const onClick = (movie: IMovie) => {
+    router.push(
+      {
+        pathname: `movies/${movie.original_title}/${movie.id}`,
+        query: {
+          img: movie.poster_path,
+          overview: movie.overview,
+        },
+      },
+      `movies/${movie.original_title}/${movie.id}`
+    );
 
-  useEffect(() => {
-    console.log("홈 유즈이펙트 ");
-
-    (async () => {
-      const { results } = await (await fetch(`/api/movies`)).json();
-      setMovies(results);
-    })();
-  }, []);
+    console.log("onclick");
+  };
 
   return (
     <div className="container">
       <Seo title="Home" />
-      <span className="movieTitle">
-        {!movies ? "Loading..." : "Movies List"}
-      </span>
+      <span className="movieTitle"></span>
       <div className="movieContainer">
-        {movies.map((movie) => (
-          <div className="movie" key={movie.id}>
-            <h4>{movie.original_title}</h4>
+        {results.map((movie: IMovie) => (
+          <div
+            className="movie"
+            key={movie.id}
+            onClick={() => onClick({ ...movie })}
+          >
+            <Link
+              href={{
+                pathname: `movies/${movie.original_title}/${movie.id}`,
+                query: {
+                  img: movie.poster_path,
+                  overview: movie.overview,
+                },
+              }}
+            >
+              <h4>{movie.original_title}</h4>
+            </Link>
             <img src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`} />
           </div>
         ))}
@@ -80,9 +98,25 @@ function Home() {
             color: red;
             font-weight: bold;
           }
+
+          h4 {
+            color: black;
+          }
         `}
       </style>
     </div>
   );
-}
+};
 export default React.memo(Home);
+
+export const getServerSideProps = async () => {
+  console.log("서버사이드프롭스");
+  const { results } = await (
+    await fetch(`http://localhost:3000/api/movies`)
+  ).json();
+  return {
+    props: {
+      results,
+    },
+  };
+};

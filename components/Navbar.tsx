@@ -6,6 +6,7 @@ function NavBar() {
   console.log("여기는 나브바 ");
 
   const path = usePathname();
+  const id = 132;
 
   console.log(path);
   return (
